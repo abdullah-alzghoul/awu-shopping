@@ -1,0 +1,7 @@
+# AWU Shopping – Security Module Dependencies
+# Install with: pip install -r requirements.txt
+
+flask>=3.0.0
+watchdog>=4.0.0
+psutil>=5.9.0
+cryptography>=42.0.0
