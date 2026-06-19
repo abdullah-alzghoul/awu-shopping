@@ -91,6 +91,9 @@ main section.products.flex{
   }
 
   & img {
+    width: 266px;
+    height: 266px;
+    object-fit: cover;
     border-radius: 5px 5px 0 0;
   }
 
