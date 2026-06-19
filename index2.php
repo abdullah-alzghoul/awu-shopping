@@ -105,7 +105,13 @@ if ($nameChangedAt) {
         <section class="products flex">
             <?php foreach ($featuredProducts as $product): ?>
             <article class="card">
-                <a href="./pages/product.php">
+                <a href="#" onclick="openModal(
+                    <?= json_encode('./images/' . $product['image']) ?>,
+                    <?= json_encode($product['name']) ?>,
+                    <?= json_encode($product['description']) ?>,
+                    <?= json_encode('$' . number_format($product['price'], 2)) ?>,
+                    <?= json_encode($product['name']) ?>
+                ); return false;">
                     <img width="266" src="./images/<?= htmlspecialchars($product['image']) ?>" 
                         alt="<?= htmlspecialchars($product['name']) ?>"/>
                 </a>
