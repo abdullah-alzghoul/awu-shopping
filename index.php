@@ -97,9 +97,9 @@ $guestProducts = [
         <div class="container">
             <div style="color: white;" class="footer-content">
                 <h3>Contact Us</h3>
-                <p>Email:yazanhussein@gmail.com</p>
-                <p>Phone:+9627777749009</p>
-                <p>Address:Your Address</p>
+                <p>Email: info@awu-shopping.com</p>
+                <p>Phone: +962 7 0000 0000</p>
+                <p>Address: Amman, Jordan</p>
             </div>
             <div style="color: white;" class="footer-content">
                 <h3>Quick Links</h3>
