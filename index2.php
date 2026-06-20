@@ -104,17 +104,15 @@ if ($nameChangedAt) {
 
         <section class="products flex">
             <?php foreach ($featuredProducts as $product): ?>
-            <article class="card">
-                <a href="#" onclick="openModal(
+            <article class="card" onclick="openModal(
                     <?= json_encode('./images/' . $product['image']) ?>,
                     <?= json_encode($product['name']) ?>,
                     <?= json_encode($product['description']) ?>,
                     <?= json_encode('$' . number_format($product['price'], 2)) ?>,
                     <?= json_encode($product['name']) ?>
-                ); return false;">
-                    <img width="266" src="./images/<?= htmlspecialchars($product['image']) ?>" 
-                        alt="<?= htmlspecialchars($product['name']) ?>"/>
-                </a>
+            )">
+                <img width="266" src="./images/<?= htmlspecialchars($product['image']) ?>" 
+                    alt="<?= htmlspecialchars($product['name']) ?>"/>
 
                 <div style="width: 266px" class="content">
                     <h1 class="title"><?= htmlspecialchars($product['name']) ?></h1>
@@ -123,7 +121,7 @@ if ($nameChangedAt) {
                     <div class="flex" style="justify-content: space-between; padding-bottom: 0.7rem">
                         <div class="price">$<?= number_format($product['price'], 2) ?></div>
                         <button class="add-to-cart flex" 
-                            onclick="window.location.href='./pages/product.php?add=<?= urlencode($product['name']) ?>'">
+                            onclick="event.stopPropagation(); window.location.href='./pages/product.php?add=<?= urlencode($product['name']) ?>'">
                             <i class="fa-solid fa-cart-plus"></i>
                             Add To Cart
                         </button>

@@ -75,6 +75,7 @@ main h1.recommended {
 main section.products.flex{
   flex-wrap: wrap;
   justify-content: center;
+  align-items: stretch;
   gap: 2rem 1.4rem;
 
 
@@ -82,7 +83,11 @@ main section.products.flex{
   & article.card{
     border-radius: 5px;
     box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 1px -1px, rgba(0, 0, 0, 0.14) 0px 1px 1px 0px, rgba(0, 0, 0, 0.12) 0px 1px 3px 0px;
-  transition: 0.2s;
+    transition: 0.2s;
+    display: flex;
+    flex-direction: column;
+    width: 266px;
+    cursor: pointer;
   }
 
 
@@ -100,6 +105,9 @@ main section.products.flex{
   & .card .content {
     background-color: #fff;
     border-radius: 0 0 5px 5px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
 
   & .card .content .title {
@@ -114,6 +122,10 @@ main section.products.flex{
     margin-top: 0.4rem;
     margin-bottom: 0.6rem;
     line-height: 1.1rem;
+  }
+
+  & .card .content .flex {
+    margin-top: auto;
   }
 
   & .card .content .price {
