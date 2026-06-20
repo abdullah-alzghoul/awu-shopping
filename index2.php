@@ -105,11 +105,11 @@ if ($nameChangedAt) {
         <section class="products flex">
             <?php foreach ($featuredProducts as $product): ?>
             <article class="card" onclick="openModal(
-                    <?= json_encode('./images/' . $product['image']) ?>,
-                    <?= json_encode($product['name']) ?>,
-                    <?= json_encode($product['description']) ?>,
-                    <?= json_encode('$' . number_format($product['price'], 2)) ?>,
-                    <?= json_encode($product['name']) ?>
+                <?= htmlspecialchars(json_encode('./images/' . $product['image']), ENT_QUOTES) ?>,
+                <?= htmlspecialchars(json_encode($product['name']), ENT_QUOTES) ?>,
+                <?= htmlspecialchars(json_encode($product['description']), ENT_QUOTES) ?>,
+                <?= htmlspecialchars(json_encode('$' . number_format($product['price'], 2)), ENT_QUOTES) ?>,
+                <?= htmlspecialchars(json_encode($product['name']), ENT_QUOTES) ?>
             )">
                 <img width="266" src="./images/<?= htmlspecialchars($product['image']) ?>" 
                     alt="<?= htmlspecialchars($product['name']) ?>"/>
