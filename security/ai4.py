@@ -11,7 +11,7 @@ import subprocess
 import platform
 import psutil
 import getpass
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
 MONITORED_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -121,6 +121,10 @@ def calculate_hash(filepath: str):
     except Exception:
         return None
 
+def _normalize_path(path: str) -> str:
+    """Normalize path for consistent comparison across OS/editors."""
+    return os.path.normcase(os.path.normpath(path))
+
 def get_username() -> str:
     return getpass.getuser()
 
@@ -161,6 +165,8 @@ def calculate_risk(filepath: str, event_type: str) -> int:
 
     if event_type == "DELETED":
         risk += 4
+    elif event_type == "MODIFIED":
+        risk += 3
     elif event_type == "MOVED":
         risk += 2
 
@@ -186,15 +192,16 @@ class SecurityHandler(FileSystemEventHandler):
         if self._is_ignored(filepath):
             return
 
+        norm_path    = _normalize_path(filepath)
         username     = get_username()
         risk         = calculate_risk(filepath, event_type)
         current_hash = calculate_hash(filepath)
-        prev_hash    = file_hashes.get(filepath)
+        prev_hash    = file_hashes.get(norm_path)
 
         if prev_hash and current_hash and prev_hash != current_hash:
-            risk += 3
+            risk += 1
 
-        file_hashes[filepath] = current_hash
+        file_hashes[norm_path] = current_hash
 
         process_info = get_process_using_file(filepath)
         pid          = None
@@ -237,7 +244,7 @@ def initialize_hashes():
     count = 0
     for root, dirs, files in os.walk(MONITORED_PATH):
         for file in files:
-            path = os.path.join(root, file)
+            path = _normalize_path(os.path.join(root, file))
             file_hashes[path] = calculate_hash(path)
             count += 1
     print(f"[+] Baseline hashes initialized ({count} files)")
@@ -253,7 +260,7 @@ if __name__ == "__main__":
 
 
     handler  = SecurityHandler()
-    observer = Observer()
+    observer = PollingObserver(timeout=1)
     observer.schedule(handler, MONITORED_PATH, recursive=True)
     observer.start()
     print("[+] Monitoring started...\n")

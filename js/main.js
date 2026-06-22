@@ -6,7 +6,6 @@ window.addEventListener("scroll", () => {
         headerElement.classList.remove("scroll-down");
     }
 });
-
 document.addEventListener('DOMContentLoaded', function () {
 
     const container   = document.getElementById('container');

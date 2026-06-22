@@ -92,7 +92,6 @@ $guestProducts = [
     <?php endforeach; ?>
 </section>
     </main>
-
     <footer>
         <div class="container">
             <div style="color: white;" class="footer-content">
