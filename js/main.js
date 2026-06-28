@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', function () {
             container.classList.remove('active');
         });
     }
-
     const sendBtn = document.getElementById('sendCodeBtn');
     function getCsrfToken() {
         const field = document.querySelector('input[name="csrf_token"]');
