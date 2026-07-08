@@ -126,5 +126,5 @@ buyNowButton.addEventListener("click", () => {
         return;
     }
 
-    window.location.href = "../pages/card.php";
+    window.location.href = "../pages/checkout.php";
 });

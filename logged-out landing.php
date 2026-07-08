@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/api/session_config.php';
 if (isset($_SESSION['user_id'])) {
-    header("Location: index2.php");
+    header("Location: home.php");
     exit;
 }
 ?>

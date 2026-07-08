@@ -164,7 +164,7 @@ if (isset($_POST['signin'])) {
         if ($user['role'] === 'manager') {
             header("Location: ../pages/manager.php");
         } else {
-            header("Location: ../index2.php");
+            header("Location: ../home.php");
         }
         exit;
 

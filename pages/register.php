@@ -23,7 +23,7 @@ $panel = $_GET['panel'] ?? 'signin';
     <div class="container <?= $panel === 'signup' ? 'active' : '' ?>" id="container">
 
         <div class="form-container sign-up">
-            <form action="../api/re.php" method="post">
+            <form action="../api/login_register.php" method="post">
                 <?= csrf_field() ?>
                 <h1>Create Account</h1>
                 <div class="social-icons">
@@ -68,7 +68,7 @@ $panel = $_GET['panel'] ?? 'signin';
         </div>
 
         <div class="form-container sign-in">
-            <form action="../api/re.php" method="post">
+            <form action="../api/login_register.php" method="post">
                 <?= csrf_field() ?>
                 <h1>Sign In</h1>
                 <div class="social-icons">

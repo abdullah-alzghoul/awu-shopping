@@ -37,3 +37,8 @@ env.php
 config.php
 db.php
 awu_security/ssl/
+
+images/avatars/*.jpeg
+images/avatars/*.jpg
+images/avatars/*.png
+images/avatars/*.PNG

@@ -436,7 +436,7 @@ function formatExpiry(input) {
 function handleSubmit(e) {
     e.preventDefault();
     alert('✅ Order placed successfully! Thank you for shopping at AWU Shopping.');
-    window.location.href = '../index2.php';
+    window.location.href = '../home.php';
 }
 </script>
 
