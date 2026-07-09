@@ -59,11 +59,45 @@ function security_post(string $endpoint, array $payload): ?array {
 
         if (strpos($endpoint, '/scan') !== false) {
             $value = $payload['value'] ?? '';
+            // Mirrors awu_security/detectors.py's SQLi/XSS/command-injection/
+            // path-traversal patterns, so degraded mode stays close to the
+            // real detector's coverage instead of the much narrower set this
+            // used to check.
             $basicPatterns = [
-                '/(\bSELECT\b|\bUNION\b|\bINSERT\b|\bDROP\b|\bDELETE\b)/i',
-                '/<script[\s\S]*?>[\s\S]*?<\/script>/i',
-                '/(\bOR\b|\bAND\b)\s+\d+=\d+/i',
-                '/[\'";]/',
+                // SQL Injection
+                '#(\bunion\b.{0,30}\bselect\b)#i',
+                '#\b(or|and)\b\s+[\w\'"]+\s*(=|like)\s*[\w\'"]+#i',
+                '#(\'\s*=\s*\'|1\s*=\s*1|true\s*=\s*true)#i',
+                '#;\s*(drop|insert|update|delete|alter|create)\b#i',
+                '#\b(sleep|benchmark|waitfor\s+delay)\s*\(#i',
+                '#(%27|%22|%60)#i',
+                '#\binformation_schema\b#i',
+                '#\b(0x[0-9a-f]+|char\s*\()#i',
+                '#\bxp_cmdshell\b#i',
+                // XSS
+                '#<\s*script[\s>]#i',
+                '#<\s*/\s*script\s*>#i',
+                '#javascript\s*:#i',
+                '#vbscript\s*:#i',
+                '#on\w+\s*=\s*["\']?\s*\w#i',
+                '#<\s*iframe[\s>]#i',
+                '#<\s*svg[\s>].+?(on\w+|javascript)#i',
+                '#expression\s*\(#i',
+                '#document\s*\.\s*(cookie|write|location)#i',
+                '#\beval\s*\(#i',
+                '#%3c\s*script#i',
+                '#&lt;\s*script#i',
+                // Command Injection
+                '#[;|&`]\s*(ls|dir|cat|rm|del|wget|curl|bash|sh|cmd|powershell)\b#i',
+                '#\$\s*\(#i',
+                '#`[^`]+`#',
+                '#\b(nc|netcat)\s+-#i',
+                '#/etc/(passwd|shadow|hosts)\b#i',
+                // Path Traversal
+                '#\.\./#i',
+                '#\.\.\\\\#i',
+                '#%2e%2e[%2f%5c]#i',
+                '#c:\\\\windows\\\\system32#i',
             ];
             foreach ($basicPatterns as $pattern) {
                 if (preg_match($pattern, $value)) {
@@ -74,11 +108,7 @@ function security_post(string $endpoint, array $payload): ?array {
         }
 
         if (strpos($endpoint, '/login-attempt') !== false) {
-            return ['action' => 'allow', 'message' => ''];
-        }
-
-        if (strpos($endpoint, '/ban') !== false) {
-            return ['banned' => false];
+            return ['action' => 'block', 'message' => 'Security service is temporarily unavailable. Please try again shortly.'];
         }
 
         http_response_code(503);
@@ -171,7 +201,7 @@ function check_login_attempt(string $ip, string $email,
         'email'   => $email,
         'success' => $success,
     ]);
-    return $result ?? ['action' => 'allow', 'message' => ''];
+    return $result ?? ['action' => 'block', 'message' => 'Security service is temporarily unavailable. Please try again shortly.'];
 }
 
 /**
@@ -182,7 +212,7 @@ function check_login_attempt(string $ip, string $email,
 function is_ip_banned(): array {
     $ip     = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     $result = security_get('/ban/check', ['ip' => $ip]);
-    return $result ?? ['banned' => false];
+    return $result ?? ['banned' => true, 'reason' => 'Security service is temporarily unavailable'];
 }
 
 /**
