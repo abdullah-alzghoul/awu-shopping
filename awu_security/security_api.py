@@ -81,7 +81,7 @@ def scan_input():
     field    = data.get("field", "input")
     context  = data.get("context", "general")
     user_id  = data.get("user_id", "anonymous")
-    ip       = get_client_ip()
+    ip       = data.get("ip") or get_client_ip()
 
     ban_info = ban_manager.is_banned(ip)
     if ban_info["banned"]:

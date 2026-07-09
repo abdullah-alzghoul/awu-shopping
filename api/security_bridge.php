@@ -163,6 +163,7 @@ function security_scan(string $value, string $field = 'input',
         'field'   => $field,
         'context' => $context,
         'user_id' => $userId,
+        'ip'      => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
     ]);
 
     return $result ?? ['safe' => true, 'threats' => [], 'sanitized_value' => $value];
