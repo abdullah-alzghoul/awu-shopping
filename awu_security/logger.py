@@ -1,5 +1,5 @@
 """
-logger.py – Security Event Logger (with basic encryption)
+logger.py – Security Event Logger (AES-256-GCM authenticated encryption)
 """
 
 import json
@@ -8,6 +8,7 @@ import threading
 import base64
 import hashlib
 from datetime import datetime, timedelta
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 LOG_JSON = "logs/security_events.jsonl"
 LOG_TEXT = "logs/security_events.log"
@@ -15,7 +16,7 @@ KEY_FILE = "logs/.log_key"
 
 
 def _get_key() -> bytes:
-    """Get or create encryption key."""
+    """Get or create encryption key (unchanged — still 32 bytes, now used for AES-256 instead of XOR)."""
     if not os.path.exists(KEY_FILE):
         os.makedirs("logs", exist_ok=True)
         key = base64.b64encode(os.urandom(32)).decode()
@@ -26,16 +27,26 @@ def _get_key() -> bytes:
     return hashlib.sha256(raw.encode()).digest()
 
 
-def _xor_encrypt(data: str) -> str:
-    """XOR encrypt a string and return base64-encoded result."""
+def _aes_encrypt(data: str) -> str:
+    """Encrypt with AES-256-GCM. Output is base64(nonce || ciphertext+tag)."""
     key = _get_key()
-    data_bytes = data.encode("utf-8")
-    encrypted = bytes(b ^ key[i % len(key)] for i, b in enumerate(data_bytes))
-    return base64.b64encode(encrypted).decode()
+    aesgcm = AESGCM(key)
+    nonce = os.urandom(12)  # fresh, random nonce every call — never reused
+    ciphertext = aesgcm.encrypt(nonce, data.encode("utf-8"), None)
+    return base64.b64encode(nonce + ciphertext).decode()
 
 
-def _xor_decrypt(encoded: str) -> str:
-    """Decrypt a base64-encoded XOR-encrypted string."""
+def _aes_decrypt(encoded: str) -> str:
+    """Decrypt a base64(nonce || ciphertext+tag) AES-256-GCM string."""
+    key = _get_key()
+    aesgcm = AESGCM(key)
+    raw = base64.b64decode(encoded.encode())
+    nonce, ciphertext = raw[:12], raw[12:]
+    return aesgcm.decrypt(nonce, ciphertext, None).decode("utf-8")
+
+
+def _xor_decrypt_legacy(encoded: str) -> str:
+    """Decrypt old XOR-encrypted entries written before this upgrade. Read-only — nothing encrypts with this anymore."""
     key = _get_key()
     encrypted = base64.b64decode(encoded.encode())
     decrypted = bytes(b ^ key[i % len(key)] for i, b in enumerate(encrypted))
@@ -66,7 +77,7 @@ class SecurityLogger:
         with self._lock:
             
             raw_json = json.dumps(record)
-            encrypted_line = _xor_encrypt(raw_json)
+            encrypted_line = _aes_encrypt(raw_json)
             with open(LOG_JSON, "a", encoding="utf-8") as f:
                 f.write(encrypted_line + "\n")
 
@@ -91,15 +102,20 @@ class SecurityLogger:
                     if not line:
                         continue
                     try:
-                        # Try decrypting first
-                        decrypted = _xor_decrypt(line)
+                        # Current format
+                        decrypted = _aes_decrypt(line)
                         records.append(json.loads(decrypted))
                     except Exception:
-                        # Fallback for old plaintext lines
                         try:
-                            records.append(json.loads(line))
+                            # Legacy XOR-encrypted entries (pre-AES upgrade)
+                            decrypted = _xor_decrypt_legacy(line)
+                            records.append(json.loads(decrypted))
                         except Exception:
-                            pass
+                            # Even older plaintext lines
+                            try:
+                                records.append(json.loads(line))
+                            except Exception:
+                                pass
         return records
 
     def get_recent(self, limit: int = 50, event_type: str = None,
