@@ -35,29 +35,24 @@ if (isset($_POST['signup'])) {
         exit;
     }
 
+    $otpCheck = check_otp_verify($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    if (!$otpCheck['allowed']) {
+        unset($_SESSION['verify_code'], $_SESSION['verify_email'], $_SESSION['verify_expires']);
+        $_SESSION['error'] = "Too many invalid attempts. Please request a new code.";
+        header("Location: ../pages/register.php?panel=signup");
+        exit;
+    }
+
     if (
         !isset($_SESSION['verify_code'], $_SESSION['verify_email'], $_SESSION['verify_expires']) ||
         $_SESSION['verify_email'] !== $email ||
         $_SESSION['verify_code'] != $code ||
         time() > $_SESSION['verify_expires']
     ) {
-        $_SESSION['code_attempts'] = ($_SESSION['code_attempts'] ?? 0) + 1;
-
-        if ($_SESSION['code_attempts'] >= 5) {
-            unset($_SESSION['verify_code'], $_SESSION['verify_email'],
-                  $_SESSION['verify_expires'], $_SESSION['code_attempts']);
-            $_SESSION['error'] = "Too many invalid attempts. Please request a new code.";
-            header("Location: ../pages/register.php?panel=signup");
-            exit;
-        }
-
-        $left = 5 - $_SESSION['code_attempts'];
-        $_SESSION['error'] = "This code is invalid or expired. Please try again. ({$left} attempt(s) left)";
+        $_SESSION['error'] = "This code is invalid or expired. Please try again. ({$otpCheck['remaining']} attempt(s) left)";
         header("Location: ../pages/register.php?panel=signup");
         exit;
     }
-
-    unset($_SESSION['code_attempts']);
 
     if ($name === '' || $email === '' || $password === '') {
         $_SESSION['error'] = "Please fill in all fields.";

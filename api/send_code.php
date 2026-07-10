@@ -23,20 +23,11 @@ if (!csrf_verify()) {
     exit;
 }
 
-$rateKey    = 'send_code_' . md5($_SERVER['REMOTE_ADDR'] ?? '');
-$rateLimit  = 3;
-$rateWindow = 600;
+require_once __DIR__ . '/security_bridge.php';
 
-$sentCount = $_SESSION[$rateKey . '_count'] ?? 0;
-$firstSent = $_SESSION[$rateKey . '_time']  ?? time();
-
-if ((time() - $firstSent) > $rateWindow) {
-    $sentCount = 0;
-    $firstSent = time();
-}
-
-if ($sentCount >= $rateLimit) {
-    $waitMinutes = ceil(($rateWindow - (time() - $firstSent)) / 60);
+$rateCheck = check_otp_send($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+if (!$rateCheck['allowed']) {
+    $waitMinutes = max(1, ceil($rateCheck['retry_after_seconds'] / 60));
     echo json_encode([
         'success' => false,
         'message' => "Too many requests. Please wait {$waitMinutes} minute(s) before trying again."
@@ -44,13 +35,8 @@ if ($sentCount >= $rateLimit) {
     exit;
 }
 
-$_SESSION[$rateKey . '_count'] = $sentCount + 1;
-$_SESSION[$rateKey . '_time']  = $firstSent;
-
 $name  = trim($_POST['name']  ?? '');
 $email = trim($_POST['email'] ?? '');
-
-require_once __DIR__ . '/security_bridge.php';
 
 if ($email === '') {
     echo json_encode(['success' => false, 'message' => 'Please enter your email address.']);

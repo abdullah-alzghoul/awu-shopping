@@ -27,6 +27,7 @@ from detectors import (
     detect_open_redirect,
 )
 from brute_force import BruteForceProtector
+from otp_limiter import otp_limiter
 from sanitizer import sanitize_input
 from ban_manager import BanManager
 from logger import SecurityLogger
@@ -183,6 +184,26 @@ def login_attempt():
         }
     )
 
+@app.route("/api/otp/send-check", methods=["POST"])
+def otp_send_check():
+    """
+    Check + record an OTP-send attempt for the given IP.
+    JSON body: { "ip": "..." }
+    """
+    data = request.get_json(silent=True) or {}
+    ip   = data.get("ip") or get_client_ip()
+    return jsonify(otp_limiter.check_send(ip))
+
+
+@app.route("/api/otp/verify-check", methods=["POST"])
+def otp_verify_check():
+    """
+    Check + record an OTP-verify attempt for the given IP.
+    JSON body: { "ip": "..." }
+    """
+    data = request.get_json(silent=True) or {}
+    ip   = data.get("ip") or get_client_ip()
+    return jsonify(otp_limiter.check_verify(ip))
 
 @app.route("/api/sanitize", methods=["POST"])
 def sanitize():

@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../api/session_config.php';
 require_once __DIR__ . '/../api/csrf.php';
+require_once __DIR__ . '/../api/security_bridge.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -70,24 +71,13 @@ if (isset($_POST['send_code'])) {
         goto render;
     }
 
-    $fpKey    = 'fp_rate_' . md5($_SERVER['REMOTE_ADDR'] ?? '');
-    $fpCount  = $_SESSION[$fpKey . '_count'] ?? 0;
-    $fpFirst  = $_SESSION[$fpKey . '_time']  ?? time();
-
-    if ((time() - $fpFirst) > 600) {
-        $fpCount = 0;
-        $fpFirst = time();
-    }
-
-    if ($fpCount >= 3) {
-        $wait    = ceil((600 - (time() - $fpFirst)) / 60);
+    $fpCheck = check_otp_send($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    if (!$fpCheck['allowed']) {
+        $wait    = max(1, ceil($fpCheck['retry_after_seconds'] / 60));
         $msg     = "Too many attempts. Please wait {$wait} minute(s) before trying again.";
         $msgType = 'error';
         goto render;
     }
-
-    $_SESSION[$fpKey . '_count'] = $fpCount + 1;
-    $_SESSION[$fpKey . '_time']  = $fpFirst;
 
     require_once __DIR__ . '/../api/db.php';
     $email = trim($_POST['email'] ?? '');

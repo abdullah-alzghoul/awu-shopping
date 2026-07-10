@@ -111,6 +111,12 @@ function security_post(string $endpoint, array $payload): ?array {
             return ['action' => 'block', 'message' => 'Security service is temporarily unavailable. Please try again shortly.'];
         }
 
+        if (strpos($endpoint, '/otp/') !== false) {
+            return ['allowed' => false, 'remaining' => 0, 'retry_after_seconds' => 60];
+        }
+
+        http_response_code(503);
+
         http_response_code(503);
         die("<!DOCTYPE html><html><head><title>503 - Service Unavailable</title></head>
         <body style='font-family:sans-serif;text-align:center;padding:60px;background:#f0f2f5;'>
@@ -203,6 +209,16 @@ function check_login_attempt(string $ip, string $email,
         'success' => $success,
     ]);
     return $result ?? ['action' => 'block', 'message' => 'Security service is temporarily unavailable. Please try again shortly.'];
+}
+
+function check_otp_send(string $ip): array {
+    $result = security_post('/otp/send-check', ['ip' => $ip]);
+    return $result ?? ['allowed' => false, 'remaining' => 0, 'retry_after_seconds' => 60];
+}
+
+function check_otp_verify(string $ip): array {
+    $result = security_post('/otp/verify-check', ['ip' => $ip]);
+    return $result ?? ['allowed' => false, 'remaining' => 0, 'retry_after_seconds' => 60];
 }
 
 /**
