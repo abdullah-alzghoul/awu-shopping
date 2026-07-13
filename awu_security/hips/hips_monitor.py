@@ -101,9 +101,17 @@ def block_ip(ip: str):
 
     elif OS_TYPE == "Darwin":  # macOS
         try:
-            # macOS pf firewall
-            cmd = f'echo "block in from {ip} to any" | pfctl -f -'
-            result = subprocess.run(cmd, shell=True, capture_output=True, timeout=10)
+            # macOS pf firewall — rule text is written directly to pfctl's
+            # stdin rather than piped through a shell, so nothing in `ip`
+            # can ever be interpreted as a shell command.
+            rule = f"block in from {ip} to any\n"
+            result = subprocess.run(
+                ["pfctl", "-f", "-"],
+                input=rule,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
             success = result.returncode == 0
         except Exception as e:
             logging.error(f"macOS firewall block failed: {e}")
