@@ -14,9 +14,13 @@ import getpass
 from watchdog.observers.polling import PollingObserver
 from watchdog.events import FileSystemEventHandler
 
-MONITORED_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# NOTE: this file lives at awu_security/hips/hips_monitor.py — three
+# directory levels below the project root. If this file is ever moved
+# again, this line must be updated to match the new depth.
+MONITORED_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 WHITELIST      = ["127.0.0.1", "8.8.8.8", "1.1.1.1"]
-RISK_THRESHOLD = 7
+RISK_THRESHOLD  = 7   # triggers an alert/log entry — stays sensitive
+BLOCK_THRESHOLD = 10  # triggers an actual firewall block — deliberately higher
 OS_TYPE        = platform.system()  # 'Windows', 'Linux', 'Darwin'
 
 file_hashes = {}
@@ -240,7 +244,7 @@ class SecurityHandler(FileSystemEventHandler):
             )
             show_alert(alert_msg)
 
-            if remote_ip and remote_ip not in WHITELIST:
+            if risk >= BLOCK_THRESHOLD and remote_ip and remote_ip not in WHITELIST:
                 block_ip(remote_ip)
 
     def on_created(self,  event): self.process_event(event, "CREATED")

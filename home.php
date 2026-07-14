@@ -480,6 +480,7 @@ function updateHeaderAvatar(shape, color, letter) {
     }
 }
 
+
 function showMsg(el, type, text) {
     el.className = 'settings-msg ' + type;
     el.textContent = text;
