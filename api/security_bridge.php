@@ -33,7 +33,10 @@ function security_post(string $endpoint, array $payload): ?array {
     curl_setopt_array($ch, [
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => $json,
-        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+        CURLOPT_HTTPHEADER     => [
+            'Content-Type: application/json',
+            'X-Internal-Auth: ' . getenv('INTERNAL_API_SECRET'),
+        ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => SECURITY_TIMEOUT,
         CURLOPT_SSL_VERIFYPEER     => false, 
@@ -142,6 +145,7 @@ function security_get(string $endpoint, array $params = []): ?array {
         CURLOPT_TIMEOUT        => SECURITY_TIMEOUT,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_HTTPHEADER     => ['X-Internal-Auth: ' . getenv('INTERNAL_API_SECRET')],
     ]);
 
     $response = curl_exec($ch);

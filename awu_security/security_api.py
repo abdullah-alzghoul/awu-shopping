@@ -33,8 +33,38 @@ from ban_manager import BanManager
 from logger import SecurityLogger
 from reporter import SecurityReporter
 
+def _load_env(path):
+    """
+    Minimal, dependency-free .env parser mirroring api/env.php's exact
+    logic, so both PHP and Python read the same value the same way
+    without adding python-dotenv as a new dependency for one value.
+    """
+    if not os.path.exists(path):
+        return
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key, value = key.strip(), value.strip()
+            if key:
+                os.environ[key] = value
+
+# .env lives at the project root, one level above awu_security/
+_load_env(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
+INTERNAL_API_SECRET = os.environ.get("INTERNAL_API_SECRET")
+
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False
+
+@app.before_request
+def _require_internal_secret():
+    if not INTERNAL_API_SECRET:
+        # Fail closed: unconfigured means refuse everything, not run wide open.
+        return jsonify({"error": "Server misconfigured: INTERNAL_API_SECRET not set"}), 500
+    if request.headers.get("X-Internal-Auth") != INTERNAL_API_SECRET:
+        return jsonify({"error": "Unauthorized"}), 401
 
 brute_force   = BruteForceProtector()
 ban_manager   = BanManager()
