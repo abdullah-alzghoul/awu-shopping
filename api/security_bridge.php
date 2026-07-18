@@ -39,8 +39,9 @@ function security_post(string $endpoint, array $payload): ?array {
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => SECURITY_TIMEOUT,
-        CURLOPT_SSL_VERIFYPEER     => false, 
-        CURLOPT_SSL_VERIFYHOST     => false,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_CAINFO         => __DIR__ . '/../awu_security/ssl/api_cert.pem',
     ]);
 
     $response = curl_exec($ch);
@@ -143,8 +144,9 @@ function security_get(string $endpoint, array $params = []): ?array {
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => SECURITY_TIMEOUT,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_CAINFO         => __DIR__ . '/../awu_security/ssl/api_cert.pem',
         CURLOPT_HTTPHEADER     => ['X-Internal-Auth: ' . getenv('INTERNAL_API_SECRET')],
     ]);
 
