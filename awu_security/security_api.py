@@ -196,7 +196,7 @@ def login_attempt():
             duration_minutes=int(duration)
         )
         sec_logger.log_event("BRUTE_FORCE_BAN", ip, email, "login",
-                             "", f"Banned {result.get('ban_minutes',30)} min")
+                             "", f"Banned {duration} min")
     elif result["action"] == "warn":
         sec_logger.log_event("BRUTE_FORCE_WARN", ip, email, "login",
                              "", f"{result.get('attempts_remaining', 0)} failed attempts")

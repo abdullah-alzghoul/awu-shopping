@@ -8,7 +8,11 @@ $_SERVER['REMOTE_ADDR'] = ($_SERVER['REMOTE_ADDR'] === '::1') ? '127.0.0.1' : $_
 
 $ban = is_ip_banned();
 if ($ban['banned']) {
-    $_SESSION['error'] = "Your IP has been blocked due to too many failed attempts. Try again later.";
+    if (($ban['reason'] ?? '') === 'Security service is temporarily unavailable') {
+        $_SESSION['error'] = "Security check is temporarily unavailable. Please try again in a moment.";
+    } else {
+        $_SESSION['error'] = "Your IP has been blocked due to too many failed attempts. Try again later.";
+    }
     header("Location: ../pages/register.php");
     exit;
 }
